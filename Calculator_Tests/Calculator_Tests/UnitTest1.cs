@@ -82,6 +82,10 @@ namespace Calculator_Tests
         [InlineData("*", "0")]
         [InlineData(" -  *", "0")]
         [InlineData("/", "Infinity")]
+        [InlineData("1000000000000000000000000000000", "1E+30")]
+        [InlineData("1E+20+1E+20", "2E+20")]
+
+
 
         public void Parser_ShouldReturnDivisionOnItself_IfTheSourceCodeContainsAnUnfinishedOperation(string input, string expected)
         {

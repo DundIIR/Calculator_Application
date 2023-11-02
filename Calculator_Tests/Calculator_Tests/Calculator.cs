@@ -32,7 +32,7 @@ namespace EquationProcessing
             var handlerInput = input;
             var result = "";
             bool isDot = false;
-            List<char> allowedСharacters = new() { '-', '+', '*', '/', '(', ')' };
+            List<char> allowedСharacters = new() { '-', '+', '*', '/', '(', ')', 'E' };
             foreach (var symbol in handlerInput)
             {
                 if (symbol == '.' || symbol == ',')

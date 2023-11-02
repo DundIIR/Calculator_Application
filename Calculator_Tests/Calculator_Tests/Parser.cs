@@ -19,19 +19,25 @@
         public string StartParsing(string? SourceString)
         {
             InputString = SourceString ?? "0";
+
             /*if (string.IsNullOrWhiteSpace(InputString))
                 throw new ArgumentNullException("String is null or contains whitespace");*/
             if(InputString == "0")
                 return InputString;
             index = 0;
             GetSymbol();
-            string result = MethodE().ToString("F8").TrimEnd('0').TrimEnd(',');
+            double result = MethodE();
+            string _result = result.ToString();
+            if (!_result.Contains("E"))
+            {
+                _result = result.ToString("F8").TrimEnd('0').TrimEnd(',');
+            }
             if (isInvalid)
                 return "Error";
-            else if (result == double.NaN.ToString())
+            else if (_result == double.NaN.ToString())
                 return "Infinity";
             else
-                return result;
+                return _result;
         }
         private double MethodE()
         {
@@ -130,19 +136,9 @@
             char temp = (char)symbol;
             while (symbol >= '0' && symbol <= '9')
             {
-
                 x += (char)symbol;
                 GetSymbol();
-                if (symbol == '(')
-                {
-                    temp2 = MethodE();
-                    if (symbol != ')')
-                    {
-                        isInvalid = true;
-                        return 0;
-                    }
-                    GetSymbol();
-                }
+                
                 if (symbol == '.' || symbol == ',')
                 {
                     if (isDot)
@@ -153,6 +149,13 @@
                     x += ',';
                     GetSymbol();
                     isDot = true;
+                }
+                else if(symbol == 'E')
+                {
+                    x += (char)symbol;
+                    GetSymbol();
+                    x += (char)symbol;
+                    GetSymbol();
                 }
 
             }

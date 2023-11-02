@@ -18,7 +18,7 @@
             <Setter Property="Background" Value="#404040" />
             <Setter Property="Foreground" Value="White" />
             <Setter Property="HorizontalContentAlignment" Value="Center" />
-            
+
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -29,7 +29,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
+        
         <Style x:Key="ButtonNumbersStyle" TargetType="Button" BasedOn="{StaticResource CalculatorButtonStyle}">
             <Setter Property="Command" Value="{Binding InputCommand}" />
             <Setter Property="CommandParameter" Value="{Binding RelativeSource={RelativeSource Self}, Path=Content}" />
@@ -38,6 +38,13 @@
         <Style x:Key="ButtonOperationStyle" TargetType="Button" BasedOn="{StaticResource CalculatorButtonStyle}">
             <Setter Property="Command" Value="{Binding OperationCommand}" />
             <Setter Property="CommandParameter" Value="{Binding RelativeSource={RelativeSource Self}, Path=Content}" />
+            <Setter Property="Background" Value="Orange"/>
+            <Style.Triggers>
+                <Trigger Property="IsFocused" Value="True">
+                    <Setter Property="Background" Value="White"/>
+                    <Setter Property="Foreground" Value="Orange" />
+                </Trigger>
+            </Style.Triggers>
         </Style>
         
     </Window.Resources>
@@ -50,10 +57,11 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
+            <!-- Поле для прошлых значений и операций -->
+            <TextBox Grid.Row="0" Text="{Binding TempResult, UpdateSourceTrigger=PropertyChanged}" FontSize="40" FontWeight="Light" VerticalContentAlignment="Bottom" HorizontalContentAlignment="Right" Background="#111" Foreground="#777"  Margin="10 10 35 0" BorderThickness="0"/>
+            <!-- <TextBox Grid.Row="1" Text="{Binding PastOperation, UpdateSourceTrigger=PropertyChanged}" FontSize="40" FontWeight="Light" VerticalContentAlignment="Top" HorizontalContentAlignment="Right" Background="#111" Foreground="#777"  Margin="10 -10 35 10" BorderThickness="0"/>
+            -->
             <!-- Поле для отображения ввода и результата -->
-            <TextBox Grid.Row="0" Text="{Binding PastValue, UpdateSourceTrigger=PropertyChanged}" FontSize="40" FontWeight="Light" VerticalContentAlignment="Bottom" HorizontalContentAlignment="Right" Background="#111" Foreground="#777"  Margin="10 10 35 0" BorderThickness="0"/>
-            <TextBox Grid.Row="1" Text="{Binding PastOperation, UpdateSourceTrigger=PropertyChanged}" FontSize="40" FontWeight="Light" VerticalContentAlignment="Top" HorizontalContentAlignment="Right" Background="#111" Foreground="#777"  Margin="10 0 35 10" BorderThickness="0"/>
-
             <TextBox Grid.Row="2" Text="{Binding CurrentValue, UpdateSourceTrigger=PropertyChanged}" FontSize="72" FontWeight="Light" VerticalContentAlignment="Bottom" HorizontalContentAlignment="Right" Background="#111" Foreground="#fff"  Margin="10 0 25 10" BorderThickness="0"/>
 
             <!-- Кнопки калькулятора -->
@@ -86,16 +94,16 @@
                 <Button Content="," Grid.Row="4" Grid.Column="2" Style="{StaticResource ButtonNumbersStyle}"/>
 
                 <!-- Кнопки операторов и "Вычислить" -->
-                <Button Content="/" Grid.Row="0" Grid.Column="3" Style="{StaticResource ButtonOperationStyle}" Background="Orange"/>
-                <Button Content="*" Grid.Row="1" Grid.Column="3" Style="{StaticResource ButtonOperationStyle}" Background="Orange"/>
-                <Button Content="-" Grid.Row="2" Grid.Column="3" Style="{StaticResource ButtonOperationStyle}" Background="Orange"/>
-                <Button Content="+" Grid.Row="3" Grid.Column="3" Style="{StaticResource ButtonOperationStyle}" Background="Orange"/>
+                <Button Content="/" Grid.Row="0" Grid.Column="3" Style="{StaticResource ButtonOperationStyle}" />
+                <Button Content="*" Grid.Row="1" Grid.Column="3" Style="{StaticResource ButtonOperationStyle}" />
+                <Button Content="-" Grid.Row="2" Grid.Column="3" Style="{StaticResource ButtonOperationStyle}" />
+                <Button Content="+" Grid.Row="3" Grid.Column="3" Style="{StaticResource ButtonOperationStyle}" />
                 <Button Command="{Binding СalculationsCommand}" Content="=" Grid.Row="4" Grid.Column="3" Style="{StaticResource CalculatorButtonStyle}" Background="Orange"/>
 
-                <!-- Кнопки "Сброс", "Стереть" и "Смена знака" -->
+                <!-- Кнопки "Сброс", "Смена знака" и "Скобочки" -->
                 <Button Command="{Binding CleanCommand}" Content="AC" Grid.Row="0" Grid.Column="0" Style="{StaticResource CalculatorButtonStyle}" Background="#999" Foreground="#111"/>
-                <Button Content="+-" Grid.Row="0" Grid.Column="1" Style="{StaticResource CalculatorButtonStyle}" Background="#999" Foreground="#111"/>
-                <Button Content="()" Grid.Row="0" Grid.Column="2" Style="{StaticResource CalculatorButtonStyle}" Background="#999" Foreground="#111"/>
+                <Button Command="{Binding InversionCommand}" Content="+-" Grid.Row="0" Grid.Column="1" Style="{StaticResource CalculatorButtonStyle}" Background="#999" Foreground="#111"/>
+                <Button Content="()" Grid.Row="0" Grid.Column="2" Style="{StaticResource ButtonOperationStyle}" Background="#999" Foreground="#111"/>
             </Grid>
         </Grid>
     </Border>
