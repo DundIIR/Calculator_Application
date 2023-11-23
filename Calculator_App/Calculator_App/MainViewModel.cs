@@ -1,15 +1,45 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using EquationProcessing;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 
 
 namespace Calculator_App;
 
-class MainViewModel: INotifyPropertyChanged
+class TextBoxSizeConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    { 
+        var str = value.ToString() ?? string.Empty;
+
+        
+        if (str.Length < 9)
+            return 72;
+        else if (str.Length < 12)
+            return 56;
+        else if (str.Length < 16)
+            return 40;
+        else if(str.Length < 20)
+            return 32;
+        else
+            return 26;  
+        
+    }
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    {
+        return value;
+    }
+}
+
+class MainViewModel : INotifyPropertyChanged, IDataErrorInfo
 {
     private Calculator _calculator;
 
@@ -58,12 +88,12 @@ class MainViewModel: INotifyPropertyChanged
 
         OperationCommand = new RelayCommand<string>(x =>
         {
-            if (CalculationSelection)
+            if (CalculationSelection) // если было нажато равно
             {
                 PastValue = CurrentValue;
                 CalculationSelection = false;
             }
-            if (!string.IsNullOrEmpty(PastOperation) && (x == "+" || x == "-")) // Если мы вводим не первый МЗ, вычисляем прошлую операцию
+            if (!string.IsNullOrEmpty(PastOperation) && (x == "+" || x == "-")) // Если вводим не первый МЗ, вычисляем прошлую операцию
             {
                 Result = TempResult + Result;
                 TempResult = string.Empty;
@@ -74,7 +104,7 @@ class MainViewModel: INotifyPropertyChanged
                     PastValue = CurrentValue;
                 }
             }
-            else if (_pastOperation != "+" && _pastOperation != "-" && (x == "*" || x == "/"))
+            else if (_pastOperation != "+" && _pastOperation != "-" && (x == "*" || x == "/"))  
             {
                 if (!OperationSelection)
                 {
@@ -106,23 +136,52 @@ class MainViewModel: INotifyPropertyChanged
 
         СalculationsCommand = new RelayCommand(() =>
         {
-            
+
+
             if (OperationSelection)
             {
                 _result += TempResult + CurrentValue + PastOperation + PastValue;
             }
             else
-            {   
-                if(!string.IsNullOrEmpty(TempResult)) OperationCommand.Execute("+");
+            {
+                if (!string.IsNullOrEmpty(TempResult)) OperationCommand.Execute("+");
                 _result += CurrentValue;
             }
-            CurrentValue = Calculator.Calculation(_result);
+
+            if (!Valid)
+            {
+                _errors[nameof(CurrentValue)] = "Не хватает закрывающих скобок";
+                OnPropertyChanged(nameof(CurrentValue));
+            }
+            else
+            {
+                CurrentValue = Calculator.Calculation(_result);
+            }
             
             OperationSelection = true;
             CalculationSelection = true;
 
             Result = string.Empty;
         });
+    }
+
+    private bool _valid = true;
+    public bool Valid
+    {
+        get
+        {
+            int openingBrackets = _currentValue.Count(c => (c == '('));
+            int closingBrackets = _currentValue.Count(c => (c == ')'));
+            if(openingBrackets == closingBrackets) 
+                _valid = true;
+            else
+                _valid = false;
+            return _valid;
+        }
+        set
+        {
+            _valid = value;
+        }
     }
 
     private string? _tempResult = string.Empty;
@@ -180,8 +239,11 @@ class MainViewModel: INotifyPropertyChanged
             _currentValue = Calculator.Handler(value);
 
             _currentValue = (_currentValue == "0" || _currentValue.Contains(",") || _currentValue.Contains(".")) ? _currentValue : _currentValue.TrimStart('0');
+
             OnPropertyChanged();
-        } 
+
+            _errors[nameof(CurrentValue)] = null;
+        }
     }
 
 
@@ -191,7 +253,22 @@ class MainViewModel: INotifyPropertyChanged
     public RelayCommand<string> OperationCommand { get; }
     public RelayCommand СalculationsCommand { get; }
 
+    private Dictionary<string, string> _errors = new Dictionary<string, string>();
+    public string Error
+    {
+        get
+        {
+            return string.Join(Environment.NewLine, _errors.Values);
+        }
+    }
 
+    public string this[string columnName]
+    {
+        get
+        {
+            return _errors.TryGetValue(columnName, out var value) ? value : string.Empty;
+        }
+    }
 
     public event PropertyChangedEventHandler? PropertyChanged;
     protected void OnPropertyChanged([CallerMemberName] string name = null)

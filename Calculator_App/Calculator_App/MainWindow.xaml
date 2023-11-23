@@ -8,7 +8,10 @@
         Title="MainWindow" Height="900" Width="500" Background="#666"
         d:DataContext="{d:DesignInstance {x:Type local:MainViewModel}}">
     <Window.Resources>
-        <Style x:Key="CalculatorButtonStyle" TargetType="Button">
+        <local:TextBoxSizeConverter x:Key="TextBoxSizeConverter"/>
+
+
+        <Style x:Key="CalculatorButtonStyle" TargetType="{x:Type Button}">
             <Setter Property="Padding" Value="0" />
             <Setter Property="Width" Value="Auto" />
             <Setter Property="Height" Value="80" />
@@ -21,7 +24,7 @@
 
             <Setter Property="Template">
                 <Setter.Value>
-                    <ControlTemplate TargetType="Button">
+                    <ControlTemplate TargetType="{x:Type Button}">
                         <Border Background="{TemplateBinding Background}" CornerRadius="40" Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" />
                         </Border>
@@ -29,13 +32,13 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        
-        <Style x:Key="ButtonNumbersStyle" TargetType="Button" BasedOn="{StaticResource CalculatorButtonStyle}">
+
+        <Style x:Key="ButtonNumbersStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource CalculatorButtonStyle}">
             <Setter Property="Command" Value="{Binding InputCommand}" />
             <Setter Property="CommandParameter" Value="{Binding RelativeSource={RelativeSource Self}, Path=Content}" />
         </Style>
 
-        <Style x:Key="ButtonOperationStyle" TargetType="Button" BasedOn="{StaticResource CalculatorButtonStyle}">
+        <Style x:Key="ButtonOperationStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource CalculatorButtonStyle}">
             <Setter Property="Command" Value="{Binding OperationCommand}" />
             <Setter Property="CommandParameter" Value="{Binding RelativeSource={RelativeSource Self}, Path=Content}" />
             <Setter Property="Background" Value="Orange"/>
@@ -46,7 +49,6 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
-        
     </Window.Resources>
     <Border CornerRadius="50" Background="#111" Height="812" Width="375" Padding="15 25">
         <Grid>
@@ -58,11 +60,46 @@
             </Grid.RowDefinitions>
 
             <!-- Поле для прошлых значений и операций -->
-            <TextBox Grid.Row="0" Text="{Binding TempResult, UpdateSourceTrigger=PropertyChanged}" FontSize="40" FontWeight="Light" VerticalContentAlignment="Bottom" HorizontalContentAlignment="Right" Background="#111" Foreground="#777"  Margin="10 10 35 0" BorderThickness="0"/>
+            <TextBox Grid.Row="0" 
+                     Text="{Binding TempResult, UpdateSourceTrigger=PropertyChanged}" 
+                     FontSize="40" 
+                     FontWeight="Light" 
+                     VerticalContentAlignment="Bottom" HorizontalContentAlignment="Right" 
+                     Background="#111" Foreground="#777"  
+                     Margin="10 10 35 0" 
+                     BorderThickness="0"/>
             <!-- <TextBox Grid.Row="1" Text="{Binding PastOperation, UpdateSourceTrigger=PropertyChanged}" FontSize="40" FontWeight="Light" VerticalContentAlignment="Top" HorizontalContentAlignment="Right" Background="#111" Foreground="#777"  Margin="10 -10 35 10" BorderThickness="0"/>
             -->
             <!-- Поле для отображения ввода и результата -->
-            <TextBox Grid.Row="2" Text="{Binding CurrentValue, UpdateSourceTrigger=PropertyChanged}" FontSize="72" FontWeight="Light" VerticalContentAlignment="Bottom" HorizontalContentAlignment="Right" Background="#111" Foreground="#fff"  Margin="10 0 25 10" BorderThickness="0"/>
+            <TextBox Grid.Row="2" 
+                    
+                     Text="{Binding CurrentValue, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True, ValidatesOnDataErrors=True}" 
+                     FontSize="{Binding CurrentValue, Converter={StaticResource TextBoxSizeConverter}, ConverterParameter=Current}" 
+                     FontWeight="Light" 
+                     VerticalContentAlignment="Bottom" HorizontalContentAlignment="Right" 
+                     Background="#111"  
+                     Margin="10 0 25 10" 
+                     BorderThickness="0">
+                <Validation.ErrorTemplate>
+                    <ControlTemplate>
+                        <StackPanel>
+                            <!-- Переопределяем отображение ошибки -->
+                            <AdornedElementPlaceholder x:Name="placeholder"/>
+                            <TextBlock Text="{Binding [0].ErrorContent}" Foreground="Red" Margin="5,0,0,0"/>
+                        </StackPanel>
+                    </ControlTemplate>
+                </Validation.ErrorTemplate>
+                <TextBox.Style>
+                    <Style TargetType="TextBox">
+                        <Setter Property="Foreground" Value="#fff" />
+                        <Style.Triggers>
+                            <Trigger Property="Validation.HasError" Value="True">
+                                <Setter Property="Foreground" Value="Red" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBox.Style>
+            </TextBox>
 
             <!-- Кнопки калькулятора -->
             <Grid Grid.Row="3">
