@@ -45,36 +45,103 @@ class MainViewModel : INotifyPropertyChanged, IDataErrorInfo
 
 
     private bool OperationSelection = false;
+    private int OpenBracket = 0;
     private bool CalculationSelection = false;
 
     public MainViewModel()
     {
         _calculator = new Calculator();
 
+        // Очищаем все значения
         CleanCommand = new RelayCommand(() =>
         {
-            PastValue = string.Empty;
-            PastOperation = string.Empty;
-            CurrentValue = string.Empty;
+            PastValue = PastOperation = CurrentValue = TempResult = Result = string.Empty;
             OperationSelection = false;
-            TempResult = string.Empty;
-            Result = string.Empty;
+            CalculationSelection = false;
+            OpenBracket = 0;
         });
 
+        // Инвертируем текущее значение
         InversionCommand = new RelayCommand(() =>
         {
-            if (CurrentValue.Length > 0 && CurrentValue[0] != '-')
-                CurrentValue = '-' + CurrentValue;
-            else
-                CurrentValue = CurrentValue.Substring(1);
+            CurrentValue = CurrentValue.Length > 0 && CurrentValue[0] != '-' ? '-' + CurrentValue : CurrentValue.Substring(1);
+        });
+
+
+        // Light version
+        InputCommand = new RelayCommand<string>(x =>
+        {
+            if (OperationSelection)
+            {
+
+                CurrentValue += PastOperation;
+                OperationSelection = false;
+            }
+            else if (CalculationSelection)
+            {
+                CurrentValue = string.Empty;
+                CalculationSelection = false;
+            }
+
+            CurrentValue += x;
 
         });
 
+        OperationCommand = new RelayCommand<string>(x =>
+        {
+            if (PastOperation == "()")
+                return;
+            else if (x == "()")
+            {
+                if (OperationSelection)
+                {
+                    CurrentValue += PastOperation + "(";
+                    OperationSelection = false;
+                    OpenBracket += 1;
+                }
+                else if(OpenBracket != 0)
+                {
+                    CurrentValue += ")";
+                    OperationSelection = false;
+                    OpenBracket -= 1;
+                }
+            }
+            else
+            {
+                OperationSelection = true;
+                CalculationSelection = false;
+            }
+
+            PastOperation = x;
+
+        });
+
+        СalculationsCommand = new RelayCommand(() =>
+        {
+            if (!Valid)
+            {
+                _errors[nameof(CurrentValue)] = "Не хватает закрывающих скобок";
+                OnPropertyChanged(nameof(CurrentValue));
+            }
+            else
+            {
+                CurrentValue = Calculator.Calculation(_result);
+                CalculationSelection = true;
+
+                PastOperation = string.Empty;
+                OperationSelection = false;
+            }
+        });
+
+
+
+        // Professional version
+        /*
         InputCommand = new RelayCommand<string>(x =>
         {
-            if(OperationSelection)                       // Если вводим первую цифру после ввода операции
+            if (OperationSelection) // Выбрана операция
             {
-                if (CurrentValue.Contains("(")) Result = "(";
+                //if (CurrentValue.Contains("(")) Result = "(";
                 CurrentValue = string.Empty;
                 _result += PastValue + PastOperation;
                 OperationSelection = false;
@@ -82,8 +149,6 @@ class MainViewModel : INotifyPropertyChanged, IDataErrorInfo
 
             CurrentValue += x;
             PastValue = CurrentValue;
-
-            OnPropertyChanged(nameof(PastValue));
         });
 
         OperationCommand = new RelayCommand<string>(x =>
@@ -93,9 +158,9 @@ class MainViewModel : INotifyPropertyChanged, IDataErrorInfo
                 PastValue = CurrentValue;
                 CalculationSelection = false;
             }
-            if (!string.IsNullOrEmpty(PastOperation) && (x == "+" || x == "-")) // Если вводим не первый МЗ, вычисляем прошлую операцию
+            if (!string.IsNullOrEmpty(PastOperation) && (x == "+" || x == "-")) // Вводим не первую операцию +|-, вычисляем прошлую операцию
             {
-                Result = TempResult + Result;
+                Result = TempResult + Result;      
                 TempResult = string.Empty;
 
                 if (!OperationSelection)
@@ -120,16 +185,33 @@ class MainViewModel : INotifyPropertyChanged, IDataErrorInfo
             }
             else if (x == "()")
             {                
-                TempResult += CurrentValue + PastOperation;
+                TempResult += CurrentValue + PastOperation + "(";
+                if (OperationSelection)
+                {
+                    _openBracket += 1;
+                    x = "(";
+                    _result += CurrentValue;
+                    CurrentValue = Calculator.Calculation(_result);
+
+                    OperationSelection = true;
+                    CalculationSelection = true;
+
+                    Result = string.Empty;
+                    PastValue = CurrentValue;
+                }
+                else
+                {
+
+                }
                 Result = string.Empty;
-                CurrentValue = "(0";
+                CurrentValue = "0";
             }
             else
             {
                 TempResult += Result;
                 Result = string.Empty;
             }
-            
+
             PastOperation = x;
             OperationSelection = true;
         });
@@ -157,12 +239,13 @@ class MainViewModel : INotifyPropertyChanged, IDataErrorInfo
             {
                 CurrentValue = Calculator.Calculation(_result);
             }
-            
+
             OperationSelection = true;
             CalculationSelection = true;
 
             Result = string.Empty;
         });
+        */
     }
 
     private bool _valid = true;
@@ -230,8 +313,8 @@ class MainViewModel : INotifyPropertyChanged, IDataErrorInfo
         }
     } 
 
-    private string? _currentValue = "0";
-    public string? CurrentValue
+    private string _currentValue = "0";
+    public string CurrentValue
     {
         get => _currentValue;
         set
