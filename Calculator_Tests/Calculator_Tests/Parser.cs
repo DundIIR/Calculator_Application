@@ -32,9 +32,9 @@
             {
                 _result = result.ToString("F8").TrimEnd('0').TrimEnd(',');
             }
-            if (isInvalid)
+            if (isInvalid || symbol == ')')
                 return "Error";
-                /*throw new ArgumentException($"Invalid parameter. Current string:{InputString} ");*/
+                //throw new ArgumentException($"Invalid parameter. Current string:{InputString} ");
             else if (_result == double.NaN.ToString())
                 return "Infinity";
             else

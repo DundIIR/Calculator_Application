@@ -10,6 +10,36 @@
     <Window.Resources>
         <local:TextBoxSizeConverter x:Key="TextBoxSizeConverter"/>
 
+        <Style x:Key="InputField" TargetType="{x:Type TextBox}">
+            <Setter Property="Foreground" Value="#fff"/>
+            <Setter Property="Validation.ErrorTemplate">
+                <Setter.Value>
+                    <ControlTemplate>
+
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+
+                            <!-- ErrorContent выводится в верхней строке -->
+                            <Border BorderThickness="1" CornerRadius="10" Background="LightGray" Width="250" Margin="15 0 0 0">
+                                <TextBlock Text="{Binding [0].ErrorContent}" Foreground="#111" HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap" Padding="5 10"/>
+                            </Border>
+
+                            <!-- Ваш TextBox располагается ниже ErrorContent -->
+                            <AdornedElementPlaceholder x:Name="placeholder" Grid.Row="1"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="Validation.HasError" Value="True">
+                    <Setter Property="Foreground" Value="#e64646" />
+                </Trigger>
+            </Style.Triggers>
+
+        </Style>
 
         <Style x:Key="CalculatorButtonStyle" TargetType="{x:Type Button}">
             <Setter Property="Padding" Value="0" />
@@ -59,46 +89,40 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
+            <ComboBox Width="150" Height="30" Background="Black" >
+                <ComboBoxItem>
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="Кнопка" Margin="5"/>
+                        <Button Content="Кнопка" Margin="5"/>
+                        <Button Content="Кнопка" Margin="5"/>
+                    </StackPanel>
+                </ComboBoxItem>
+                <ComboBoxItem>
+                    <!-- Аналогично для других элементов списка -->
+                </ComboBoxItem>
+            </ComboBox>
             <!-- Поле для прошлых значений и операций -->
-            <TextBox Grid.Row="0" 
+            <!--<TextBox Grid.Row="0" 
                      Text="{Binding TempResult, UpdateSourceTrigger=PropertyChanged}" 
                      FontSize="40" 
                      FontWeight="Light" 
                      VerticalContentAlignment="Bottom" HorizontalContentAlignment="Right" 
                      Background="#111" Foreground="#777"  
                      Margin="10 10 35 0" 
-                     BorderThickness="0"/>
+                     BorderThickness="0"/>-->
             <!-- <TextBox Grid.Row="1" Text="{Binding PastOperation, UpdateSourceTrigger=PropertyChanged}" FontSize="40" FontWeight="Light" VerticalContentAlignment="Top" HorizontalContentAlignment="Right" Background="#111" Foreground="#777"  Margin="10 -10 35 10" BorderThickness="0"/>
             -->
+            
             <!-- Поле для отображения ввода и результата -->
             <TextBox Grid.Row="2" 
-                    
-                     Text="{Binding CurrentValue, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True, ValidatesOnDataErrors=True}" 
-                     FontSize="{Binding CurrentValue, Converter={StaticResource TextBoxSizeConverter}, ConverterParameter=Current}" 
+                     Style="{StaticResource InputField}"
+                     Text="{Binding Result, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True, ValidatesOnDataErrors=True}" 
+                     FontSize="{Binding Result, Converter={StaticResource TextBoxSizeConverter}, ConverterParameter=Current}" 
                      FontWeight="Light" 
                      VerticalContentAlignment="Bottom" HorizontalContentAlignment="Right" 
                      Background="#111"  
                      Margin="10 0 25 10" 
                      BorderThickness="0">
-                <Validation.ErrorTemplate>
-                    <ControlTemplate>
-                        <StackPanel>
-                            <!-- Переопределяем отображение ошибки -->
-                            <AdornedElementPlaceholder x:Name="placeholder"/>
-                            <TextBlock Text="{Binding [0].ErrorContent}" Foreground="Red" Margin="5,0,0,0"/>
-                        </StackPanel>
-                    </ControlTemplate>
-                </Validation.ErrorTemplate>
-                <TextBox.Style>
-                    <Style TargetType="TextBox">
-                        <Setter Property="Foreground" Value="#fff" />
-                        <Style.Triggers>
-                            <Trigger Property="Validation.HasError" Value="True">
-                                <Setter Property="Foreground" Value="Red" />
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </TextBox.Style>
             </TextBox>
 
             <!-- Кнопки калькулятора -->
@@ -130,6 +154,7 @@
                 <Button Content="0" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" HorizontalContentAlignment="Left" Padding="32 0" Style="{StaticResource ButtonNumbersStyle}"/>
                 <Button Content="," Grid.Row="4" Grid.Column="2" Style="{StaticResource ButtonNumbersStyle}"/>
 
+                <Button Content="/" Grid.Row="0" Grid.Column="3" Style="{StaticResource ButtonOperationStyle}" />
                 <!-- Кнопки операторов и "Вычислить" -->
                 <Button Content="/" Grid.Row="0" Grid.Column="3" Style="{StaticResource ButtonOperationStyle}"/>
                 <Button Content="*" Grid.Row="1" Grid.Column="3" Style="{StaticResource ButtonOperationStyle}" />

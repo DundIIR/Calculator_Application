@@ -110,6 +110,7 @@ namespace Calculator_Tests
         [InlineData("(5+5)*2", "20")]
         [InlineData("5+5*2", "15")]
         [InlineData("1", "1")]
+        
 
         public void Parser_ShouldReturnResult_IfSourceContainsValidExpression(string input, string expected)
         {
@@ -126,6 +127,8 @@ namespace Calculator_Tests
         [InlineData("-0.5+-1*2/0.22*100+1", "-908,59090909")]
         [InlineData("0.5+0.5", "1")]
         [InlineData("0.+0.5", "0,5")]
+        [InlineData("(2+2*(3+5))*2", "36")]
+
 
         public void Parser_ShouldReturnDoubleNumber_IfSourceWritingDot(string left, string right)
         {
@@ -139,6 +142,9 @@ namespace Calculator_Tests
         [InlineData("2+()", "Error")]
         [InlineData("О+1.0", "Error")]
         [InlineData("2*()", "Error")]
+        [InlineData("2+(3*5", "Error")]
+        [InlineData("2+3*5)", "Error")]
+        [InlineData("2+2*(3*5))*2", "Error")]
         public void Parser_ShouldReturnError_If(string left, string right)
         {
             var result = _parser.StartParsing(left);

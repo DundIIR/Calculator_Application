@@ -43,7 +43,6 @@ class MainViewModel : INotifyPropertyChanged, IDataErrorInfo
 {
     private Calculator _calculator;
 
-
     private bool OperationSelection = false;
     private int OpenBracket = 0;
     private bool CalculationSelection = false;
@@ -74,7 +73,7 @@ class MainViewModel : INotifyPropertyChanged, IDataErrorInfo
             if (OperationSelection)
             {
 
-                CurrentValue += PastOperation;
+                Result += PastOperation;
                 OperationSelection = false;
             }
             else if (CalculationSelection)
@@ -84,24 +83,23 @@ class MainViewModel : INotifyPropertyChanged, IDataErrorInfo
             }
 
             CurrentValue += x;
-
+            Result += CurrentValue;
         });
 
         OperationCommand = new RelayCommand<string>(x =>
         {
-            if (PastOperation == "()")
-                return;
-            else if (x == "()")
+            CurrentValue = string.Empty;
+            if (x == "()")
             {
                 if (OperationSelection)
                 {
-                    CurrentValue += PastOperation + "(";
+                    Result += PastOperation + "(";
                     OperationSelection = false;
                     OpenBracket += 1;
                 }
-                else if(OpenBracket != 0)
+                else if (OpenBracket != 0)
                 {
-                    CurrentValue += ")";
+                    Result += ")";
                     OperationSelection = false;
                     OpenBracket -= 1;
                 }
@@ -120,12 +118,11 @@ class MainViewModel : INotifyPropertyChanged, IDataErrorInfo
         {
             if (!Valid)
             {
-                _errors[nameof(CurrentValue)] = "Не хватает закрывающих скобок";
-                OnPropertyChanged(nameof(CurrentValue));
+                OnPropertyChanged(nameof(Result));
             }
             else
             {
-                CurrentValue = Calculator.Calculation(_result);
+                Result = Calculator.Calculation(_result);
                 CalculationSelection = true;
 
                 PastOperation = string.Empty;
@@ -232,7 +229,6 @@ class MainViewModel : INotifyPropertyChanged, IDataErrorInfo
 
             if (!Valid)
             {
-                _errors[nameof(CurrentValue)] = "Не хватает закрывающих скобок";
                 OnPropertyChanged(nameof(CurrentValue));
             }
             else
@@ -255,10 +251,20 @@ class MainViewModel : INotifyPropertyChanged, IDataErrorInfo
         {
             int openingBrackets = _currentValue.Count(c => (c == '('));
             int closingBrackets = _currentValue.Count(c => (c == ')'));
-            if(openingBrackets == closingBrackets) 
-                _valid = true;
-            else
+            if(openingBrackets > closingBrackets)
+            {
+                _errors[nameof(CurrentValue)] = "Не хватает закрывающих скобок";
                 _valid = false;
+            }
+            else if(openingBrackets < closingBrackets)
+            {
+                _errors[nameof(CurrentValue)] = "Не хватает открывающих скобок";
+                _valid = false;
+            }
+            else
+            {
+                _valid = true;
+            }
             return _valid;
         }
         set
@@ -281,7 +287,7 @@ class MainViewModel : INotifyPropertyChanged, IDataErrorInfo
     private string? _result = string.Empty;
     public string? Result
     {
-        get => _result;
+        get => _result == string.Empty ? CurrentValue : _result;
         set
         {
             _result = value;
