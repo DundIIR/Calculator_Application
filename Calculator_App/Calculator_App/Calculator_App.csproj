@@ -10,6 +10,7 @@
   <ItemGroup>
     <None Remove="Resources\divide-orange.png" />
     <None Remove="Resources\divide-white.png" />
+    <None Remove="Resources\History.txt" />
   </ItemGroup>
 
   <ItemGroup>
@@ -40,6 +41,7 @@
   <ItemGroup>
     <Resource Include="Resources\divide-orange.png" />
     <Resource Include="Resources\divide-white.png" />
+    <Resource Include="Resources\History.txt" />
   </ItemGroup>
 
 </Project>

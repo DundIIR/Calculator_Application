@@ -57,7 +57,9 @@ namespace Calculator_App
 
     class FileMemory : IMemory
     {
-        private string filePath;
+        
+        //private string filePath = "History.txt";
+        private string filePath = "D:\\VS_Project\\Calculator_Application\\Calculator_App\\Calculator_App\\Resources\\History.txt";
         public void Delete(string expression)
         {
             // Чтение всех выражений из файла
