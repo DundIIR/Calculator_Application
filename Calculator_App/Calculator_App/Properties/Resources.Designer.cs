@@ -59,15 +59,5 @@ namespace Calculator_App.Properties {
                 resourceCulture = value;
             }
         }
-        
-        /// <summary>
-        ///   Поиск локализованного ресурса типа System.Byte[].
-        /// </summary>
-        internal static byte[] info {
-            get {
-                object obj = ResourceManager.GetObject("info", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
     }
 }

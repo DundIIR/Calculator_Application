@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -22,7 +23,8 @@ namespace Calculator_App
         {
             InitializeComponent();
 
-            DataContext = new MainViewModel();
+            var mainViewModel = App.Provider.GetRequiredService<MainViewModel>();
+            DataContext = mainViewModel;
         }
 
        

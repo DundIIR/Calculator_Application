@@ -5,11 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Calculator_App"
         mc:Ignorable="d"
-        Title="MainWindow" Height="900" Width="500" Background="#666"
+        Title="MainWindow" Height="900" Width="700" Background="#666"
         d:DataContext="{d:DesignInstance {x:Type local:MainViewModel}}">
     <Window.Resources>
         <local:TextBoxSizeConverter x:Key="TextBoxSizeConverter"/>
-
+        
         <Style x:Key="InputField" TargetType="{x:Type TextBox}">
             <Setter Property="Foreground" Value="#fff"/>
             <Setter Property="Validation.ErrorTemplate">
@@ -38,7 +38,6 @@
                     <Setter Property="Foreground" Value="#e64646" />
                 </Trigger>
             </Style.Triggers>
-
         </Style>
 
         <Style x:Key="CalculatorButtonStyle" TargetType="{x:Type Button}">
@@ -79,8 +78,46 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+
+        <Style x:Key="HistoryButton" TargetType="{x:Type Button}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="Wheat"/>
+            <Setter Property="BorderBrush" Value="Wheat"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="5">
+                            <ContentPresenter HorizontalAlignment="Center"
+                          VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
-    <Border CornerRadius="50" Background="#111" Height="812" Width="375" Padding="15 25">
+
+    <!-- Поле для прошлых значений и операций -->
+    <!--<TextBox Grid.Row="0" 
+         Text="{Binding TempResult, UpdateSourceTrigger=PropertyChanged}" 
+         FontSize="40" 
+         FontWeight="Light" 
+         VerticalContentAlignment="Bottom" HorizontalContentAlignment="Right" 
+         Background="#111" Foreground="#777"  
+         Margin="10 10 35 0" 
+         BorderThickness="0"/>-->
+    <!-- <TextBox Grid.Row="1" Text="{Binding PastOperation, UpdateSourceTrigger=PropertyChanged}" FontSize="40" FontWeight="Light" VerticalContentAlignment="Top" HorizontalContentAlignment="Right" Background="#111" Foreground="#777"  Margin="10 -10 35 10" BorderThickness="0"/>
+-->
+
+    <Border CornerRadius="50" Background="#111" Height="812" Width="625" Padding="15 25">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="100" />
@@ -88,45 +125,65 @@
                 <RowDefinition Height="100" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="250" />
+            </Grid.ColumnDefinitions>
 
-            <ComboBox Width="150" Height="30" Background="Black" >
-                <ComboBoxItem>
-                    <StackPanel Orientation="Horizontal">
-                        <Button Content="Кнопка" Margin="5"/>
-                        <Button Content="Кнопка" Margin="5"/>
-                        <Button Content="Кнопка" Margin="5"/>
-                    </StackPanel>
-                </ComboBoxItem>
-                <ComboBoxItem>
-                    <!-- Аналогично для других элементов списка -->
-                </ComboBoxItem>
-            </ComboBox>
-            <!-- Поле для прошлых значений и операций -->
-            <!--<TextBox Grid.Row="0" 
-                     Text="{Binding TempResult, UpdateSourceTrigger=PropertyChanged}" 
-                     FontSize="40" 
-                     FontWeight="Light" 
-                     VerticalContentAlignment="Bottom" HorizontalContentAlignment="Right" 
-                     Background="#111" Foreground="#777"  
-                     Margin="10 10 35 0" 
-                     BorderThickness="0"/>-->
-            <!-- <TextBox Grid.Row="1" Text="{Binding PastOperation, UpdateSourceTrigger=PropertyChanged}" FontSize="40" FontWeight="Light" VerticalContentAlignment="Top" HorizontalContentAlignment="Right" Background="#111" Foreground="#777"  Margin="10 -10 35 10" BorderThickness="0"/>
-            -->
+            <!-- Вывод истории вычислений -->
+            <!--<Button Content="{Binding}"/> --><!--Command="{Binding Path=DataContext.SelectOperationCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" CommandParameter="{Binding}" Style="{StaticResource ButtonHistoryStyle}" />-->
             
+            <ScrollViewer Grid.Column="1" Grid.Row="3" Grid.RowSpan="2" Padding="5 10 15 20" Margin="0 0 -35 0">
+                <ItemsControl ItemsSource="{Binding OperationHistory}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Style="{StaticResource HistoryButton}" 
+                                    Content="{Binding}"
+                                    Command="{Binding DataContext.GetExpression, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                    CommandParameter="{Binding}"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <!-- Кнопки для работы с паматью -->
+            <Grid Grid.Column="1" Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0"
+                        Content="M+" 
+                        Width="100"
+                        Command="{Binding AddToMemoryCommand}" 
+                        CommandParameter="{Binding CurrentValue}" 
+                        Style="{StaticResource ButtonOperationStyle}" />
+                <Button Grid.Column="1"
+                        Content="M-" 
+                        Width="100"
+                        Command="{Binding AddToMemoryCommand}" 
+                        CommandParameter="{Binding CurrentValue}" 
+                        Style="{StaticResource ButtonOperationStyle}" />
+            </Grid>
+
+
             <!-- Поле для отображения ввода и результата -->
-            <TextBox Grid.Row="2" 
-                     Style="{StaticResource InputField}"
-                     Text="{Binding Result, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True, ValidatesOnDataErrors=True}" 
-                     FontSize="{Binding Result, Converter={StaticResource TextBoxSizeConverter}, ConverterParameter=Current}" 
-                     FontWeight="Light" 
-                     VerticalContentAlignment="Bottom" HorizontalContentAlignment="Right" 
-                     Background="#111"  
-                     Margin="10 0 25 10" 
-                     BorderThickness="0">
+            <TextBox Grid.Row="2" Grid.Column="0"
+                    Style="{StaticResource InputField}"
+                    Text="{Binding CurrentValue, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True, ValidatesOnDataErrors=True}" 
+                    FontSize="{Binding CurrentValue, Converter={StaticResource TextBoxSizeConverter}, ConverterParameter=Current}" 
+                    FontWeight="Light" 
+                    VerticalContentAlignment="Bottom" HorizontalContentAlignment="Right" 
+                    Background="#111"  
+                    Margin="10 0 25 10" 
+                    BorderThickness="0">
             </TextBox>
 
+            
+
+
             <!-- Кнопки калькулятора -->
-            <Grid Grid.Row="3">
+            <Grid Grid.Row="3" Grid.Column="0">
                 <Grid.RowDefinitions>
                     <RowDefinition/>
                     <RowDefinition/>

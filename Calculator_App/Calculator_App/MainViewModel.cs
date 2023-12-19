@@ -2,6 +2,7 @@
 using EquationProcessing;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
@@ -42,14 +43,29 @@ class TextBoxSizeConverter : IValueConverter
 class MainViewModel : INotifyPropertyChanged, IDataErrorInfo
 {
     private Calculator _calculator;
+    private readonly IMemory _memory;
 
     private bool OperationSelection = false;
     private int OpenBracket = 0;
     private bool CalculationSelection = false;
 
-    public MainViewModel()
+    public MainViewModel(IMemory memory)
     {
         _calculator = new Calculator();
+        _memory = memory ?? throw new ArgumentNullException(nameof(memory));
+        OperationHistory = new ObservableCollection<string>(_memory.GetAllExpressions());
+
+        // Добавление в историю
+        AddToMemoryCommand = new RelayCommand<string>(expression =>
+        {
+            _memory.Add(expression);
+            OperationHistory.Add(expression);
+        });
+
+        GetExpression = new RelayCommand<string>(expression =>
+        {
+            CurrentValue = expression;
+        });
 
         // Очищаем все значения
         CleanCommand = new RelayCommand(() =>
@@ -66,8 +82,8 @@ class MainViewModel : INotifyPropertyChanged, IDataErrorInfo
             CurrentValue = CurrentValue.Length > 0 && CurrentValue[0] != '-' ? '-' + CurrentValue : CurrentValue.Substring(1);
         });
 
-
         // Light version
+
         InputCommand = new RelayCommand<string>(x =>
         {
             if (OperationSelection)
@@ -131,7 +147,6 @@ class MainViewModel : INotifyPropertyChanged, IDataErrorInfo
         });
 
 
-
         // Professional version
         /*
         InputCommand = new RelayCommand<string>(x =>
@@ -157,7 +172,7 @@ class MainViewModel : INotifyPropertyChanged, IDataErrorInfo
             }
             if (!string.IsNullOrEmpty(PastOperation) && (x == "+" || x == "-")) // Вводим не первую операцию +|-, вычисляем прошлую операцию
             {
-                Result = TempResult + Result;      
+                Result = TempResult + Result;
                 TempResult = string.Empty;
 
                 if (!OperationSelection)
@@ -166,7 +181,7 @@ class MainViewModel : INotifyPropertyChanged, IDataErrorInfo
                     PastValue = CurrentValue;
                 }
             }
-            else if (_pastOperation != "+" && _pastOperation != "-" && (x == "*" || x == "/"))  
+            else if (_pastOperation != "+" && _pastOperation != "-" && (x == "*" || x == "/"))
             {
                 if (!OperationSelection)
                 {
@@ -181,11 +196,11 @@ class MainViewModel : INotifyPropertyChanged, IDataErrorInfo
                 }
             }
             else if (x == "()")
-            {                
+            {
                 TempResult += CurrentValue + PastOperation + "(";
                 if (OperationSelection)
                 {
-                    _openBracket += 1;
+                    OpenBracket += 1;
                     x = "(";
                     _result += CurrentValue;
                     CurrentValue = Calculator.Calculation(_result);
@@ -242,6 +257,20 @@ class MainViewModel : INotifyPropertyChanged, IDataErrorInfo
             Result = string.Empty;
         });
         */
+    }
+
+    private ObservableCollection<string> _operationHistory;
+    public ObservableCollection<string> OperationHistory
+    {
+        get => _operationHistory; 
+        set
+        {
+            if (_operationHistory != value)
+            {
+                _operationHistory = value;
+                OnPropertyChanged();
+            }
+        }
     }
 
     private bool _valid = true;
@@ -329,9 +358,10 @@ class MainViewModel : INotifyPropertyChanged, IDataErrorInfo
 
             _currentValue = (_currentValue == "0" || _currentValue.Contains(",") || _currentValue.Contains(".")) ? _currentValue : _currentValue.TrimStart('0');
 
+            _errors[nameof(CurrentValue)] = null;
+
             OnPropertyChanged();
 
-            _errors[nameof(CurrentValue)] = null;
         }
     }
 
@@ -341,6 +371,11 @@ class MainViewModel : INotifyPropertyChanged, IDataErrorInfo
     public RelayCommand<string> InputCommand { get; }
     public RelayCommand<string> OperationCommand { get; }
     public RelayCommand СalculationsCommand { get; }
+
+
+    public virtual RelayCommand<string> AddToMemoryCommand { get; }
+    public virtual RelayCommand<string> GetExpression { get; }
+
 
     private Dictionary<string, string> _errors = new Dictionary<string, string>();
     public string Error
