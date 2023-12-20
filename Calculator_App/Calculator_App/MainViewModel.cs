@@ -55,16 +55,24 @@ class MainViewModel : INotifyPropertyChanged, IDataErrorInfo
         _memory = memory ?? throw new ArgumentNullException(nameof(memory));
         OperationHistory = new ObservableCollection<string>(_memory.GetAllExpressions());
 
-        // Добавление в историю
+        // Добавление в память
         AddToMemoryCommand = new RelayCommand<string>(expression =>
         {
-            _memory.Add(expression);
-            OperationHistory.Add(expression);
+            if(_memory.Add(expression))
+                OperationHistory.Add(expression);
         });
 
         GetExpression = new RelayCommand<string>(expression =>
         {
             CurrentValue = expression;
+        });
+
+        // Удаление из памяти
+        DeleteToMemoryCommand = new RelayCommand<string>(expression =>
+        {
+            _memory.Delete(expression);
+            OperationHistory.Remove(expression);
+            CurrentValue = "0";
         });
 
         // Очищаем все значения
@@ -375,6 +383,7 @@ class MainViewModel : INotifyPropertyChanged, IDataErrorInfo
 
     public virtual RelayCommand<string> AddToMemoryCommand { get; }
     public virtual RelayCommand<string> GetExpression { get; }
+    public virtual RelayCommand<string> DeleteToMemoryCommand { get; }
 
 
     private Dictionary<string, string> _errors = new Dictionary<string, string>();

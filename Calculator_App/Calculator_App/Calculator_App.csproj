@@ -8,15 +8,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\del-icon.png" />
     <None Remove="Resources\divide-orange.png" />
     <None Remove="Resources\divide-white.png" />
-    <None Remove="Resources\History.txt" />
+    <None Remove="Resources\HistoryOperations.txt" />
+    <None Remove="Resources\save-icon.png" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+    <PackageReference Include="Dapper" Version="2.1.24" />
     <PackageReference Include="MahApps.Metro" Version="2.4.10" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.118" />
   </ItemGroup>
 
   <ItemGroup>
@@ -39,9 +43,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\del-icon.png" />
     <Resource Include="Resources\divide-orange.png" />
     <Resource Include="Resources\divide-white.png" />
-    <Resource Include="Resources\History.txt" />
+    <Resource Include="Resources\HistoryOperations.txt" />
+    <Resource Include="Resources\save-icon.png" />
   </ItemGroup>
 
 </Project>

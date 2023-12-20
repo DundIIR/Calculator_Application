@@ -79,6 +79,18 @@
             </Style.Triggers>
         </Style>
 
+        <Style x:Key="ButtonMemory" TargetType="{x:Type Button}" BasedOn="{StaticResource ButtonOperationStyle}">
+            <Setter Property="CommandParameter" Value="{Binding CurrentValue}" />
+            <Setter Property="Width" Value="100"/>
+            <Setter Property="Background" Value="Orange"/>
+            <Style.Triggers>
+                <Trigger Property="IsFocused" Value="True">
+                    <Setter Property="Background" Value="Orange"/>
+                    <Setter Property="Foreground" Value="White" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
         <Style x:Key="HistoryButton" TargetType="{x:Type Button}">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Foreground" Value="Wheat"/>
@@ -133,37 +145,41 @@
             <!-- Вывод истории вычислений -->
             <!--<Button Content="{Binding}"/> --><!--Command="{Binding Path=DataContext.SelectOperationCommand, RelativeSource={RelativeSource AncestorType={x:Type Window}}}" CommandParameter="{Binding}" Style="{StaticResource ButtonHistoryStyle}" />-->
             
-            <ScrollViewer Grid.Column="1" Grid.Row="3" Grid.RowSpan="2" Padding="5 10 15 20" Margin="0 0 -35 0">
-                <ItemsControl ItemsSource="{Binding OperationHistory}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Button Style="{StaticResource HistoryButton}" 
-                                    Content="{Binding}"
-                                    Command="{Binding DataContext.GetExpression, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
-                                    CommandParameter="{Binding}"/>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
 
-            <!-- Кнопки для работы с паматью -->
-            <Grid Grid.Column="1" Grid.Row="2">
+            <Grid Grid.Column="1" Grid.Row="2" Grid.RowSpan="3">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="100" />
+                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <Button Grid.Column="0"
-                        Content="M+" 
-                        Width="100"
+                
+                <ScrollViewer Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0" Grid.RowSpan="1" Padding="5 10 300 5" Margin="0 0 -310 0">
+                    <ItemsControl ItemsSource="{Binding OperationHistory}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Style="{StaticResource HistoryButton}" 
+                                        Content="{Binding}"
+                                        Command="{Binding DataContext.GetExpression, RelativeSource={RelativeSource AncestorType={x:Type Window}}}"
+                                        CommandParameter="{Binding}"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- Кнопки для работы с паматью -->
+                <Button Grid.Column="0" Grid.Row="1"
                         Command="{Binding AddToMemoryCommand}" 
-                        CommandParameter="{Binding CurrentValue}" 
-                        Style="{StaticResource ButtonOperationStyle}" />
-                <Button Grid.Column="1"
-                        Content="M-" 
-                        Width="100"
-                        Command="{Binding AddToMemoryCommand}" 
-                        CommandParameter="{Binding CurrentValue}" 
-                        Style="{StaticResource ButtonOperationStyle}" />
+                        Style="{StaticResource ButtonMemory}">
+                    <Image Source="Resources\save-icon.png" Width="32" Height="32" />
+                </Button>
+                <Button Grid.Column="1" Grid.Row="1"
+                        Command="{Binding DeleteToMemoryCommand}" 
+                        Style="{StaticResource ButtonMemory}">
+                    <Image Source="Resources\del-icon.png" Width="32" Height="32"/>
+                </Button>
             </Grid>
 
 

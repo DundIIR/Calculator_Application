@@ -5,22 +5,14 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.IO;
+using System.Data.SQLite;
+using Dapper;
 
 namespace Calculator_App
 {
-    class MemoryLog
-    {
-        private readonly IMemory _logger;
-
-        public MemoryLog(IMemory logger)
-        {
-            _logger = logger;
-        }
-    }
-
     internal interface IMemory
     {
-        void Add(string expression);
+        bool Add(string expression);
         string[] GetAllExpressions();
 
 
@@ -46,20 +38,27 @@ namespace Calculator_App
             return expressions.ToArray();
         }
 
-
-
-        public void Add(string? expression)
+        public bool Add(string? expression)
         {
-            if (expression != null)
+            if (expression != null && !expressions.Contains(expression))
+            {
                 expressions.Add(expression);
+                return true;
+            }
+            return false;
         }
     }
 
     class FileMemory : IMemory
     {
-        
-        //private string filePath = "History.txt";
-        private string filePath = "D:\\VS_Project\\Calculator_Application\\Calculator_App\\Calculator_App\\Resources\\History.txt";
+        private readonly string filePath;
+        public FileMemory()
+        {
+            string spath = typeof(DBMemory).Assembly.Location.ToString();
+            int index = spath.IndexOf("Calculator_App") + "Calculator_App".Length;
+            filePath = spath.Substring(0, index) + "\\Calculator_App\\Resources\\HistoryOperations.txt";
+        }
+
         public void Delete(string expression)
         {
             // Чтение всех выражений из файла
@@ -84,28 +83,67 @@ namespace Calculator_App
             return new string[0]; // Если файла нет, возвращаем пустой массив
         }
 
-        public void Add(string expression)
+        public bool Add(string expression)
         {
-            // Добавляем новое выражение в файл
-            File.AppendAllLines(filePath, new[] { expression });
+            string[] expressions = GetAllExpressions();
+
+            if (!expressions.Contains(expression))
+            {
+                File.AppendAllLines(filePath, new[] { expression });
+                return true;
+            }
+            return false;
         }
     }
 
     class DBMemory : IMemory
     {
-        public void Delete(string expression)
+        private readonly SQLiteConnection connection;
+        public DBMemory()
         {
-            throw new NotImplementedException();
+
+            string spath = typeof(DBMemory).Assembly.Location.ToString();
+            int index = spath.IndexOf("Calculator_App") + "Calculator_App".Length;
+            string connectionPath = "Data Source=" + spath.Substring(0, index) + "\\db_operation.db;";
+
+            connection = new System.Data.SQLite.SQLiteConnection(connectionPath);
+            connection.Open();
+            
+            var result = connection.Query<Expression>("select * from operations");
+        }
+
+        public void Delete(string expression)
+        { 
+            var result = connection.Execute("DELETE FROM operations WHERE expression = :expression", new { expression });
         }
 
         public string[] GetAllExpressions()
         {
-            throw new NotImplementedException();
+            var result = connection.Query<Expression>("select * from operations");
+            var expressions = result.Select(expr => expr.expression).ToList();
+            return expressions.ToArray();
         }
 
-        public void Add(string expression)
+        public bool Add(string expression)
         {
-            throw new NotImplementedException();
+            var existingExpressions = GetAllExpressions();
+            if (!existingExpressions.Contains(expression))
+            {
+                var result = connection.Execute("INSERT INTO operations (expression) VALUES (:expression)", new { expression });
+                return true;
+            }
+            return false;
         }
+
+        ~ DBMemory()
+        {
+            connection.Close();
+        }
+    }
+
+    class Expression
+    {
+        public long Id { get; set; }
+        public string expression { get; set; }
     }
 }
