@@ -21,8 +21,8 @@ namespace Calculator_App
             var serviceCollection = new ServiceCollection();
 
             //serviceCollection.AddSingleton<IMemory, RamMemory>();
-            //serviceCollection.AddSingleton<IMemory, FileMemory>();
-            serviceCollection.AddSingleton<IMemory, DBMemory>();
+            serviceCollection.AddSingleton<IMemory, FileMemory>();
+            //serviceCollection.AddSingleton<IMemory, DBMemory>();
 
 
             serviceCollection.AddTransient<MainViewModel>();

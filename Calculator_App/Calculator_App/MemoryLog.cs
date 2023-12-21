@@ -14,9 +14,7 @@ namespace Calculator_App
     {
         bool Add(string expression);
         string[] GetAllExpressions();
-
-
-        void Delete(string expression);
+        bool Delete(string expression);
     }
 
     class RamMemory : IMemory
@@ -24,17 +22,18 @@ namespace Calculator_App
         private List<string> expressions = new List<string>();
 
 
-        public void Delete(string expression)
+        public bool Delete(string expression)
         {
             if (expressions.Contains(expression))
             {
                 expressions.Remove(expression);
+                return true;
             }
+            return false;
         }
 
         public string[] GetAllExpressions()
         {
-            expressions.Add("Привет");
             return expressions.ToArray();
         }
 
@@ -59,17 +58,18 @@ namespace Calculator_App
             filePath = spath.Substring(0, index) + "\\Calculator_App\\Resources\\HistoryOperations.txt";
         }
 
-        public void Delete(string expression)
+        public bool Delete(string expression)
         {
             // Чтение всех выражений из файла
             string[] expressions = GetAllExpressions();
 
             // Удаление указанного выражения из списка
             List<string> expressionList = new List<string>(expressions);
-            expressionList.Remove(expression);
+            var res = expressionList.Remove(expression);
 
             // Запись обновленного списка выражений обратно в файл
             File.WriteAllLines(filePath, expressionList);
+            return res;
         }
 
         public string[] GetAllExpressions()
@@ -112,9 +112,11 @@ namespace Calculator_App
             var result = connection.Query<Expression>("select * from operations");
         }
 
-        public void Delete(string expression)
+        public bool Delete(string expression)
         { 
             var result = connection.Execute("DELETE FROM operations WHERE expression = :expression", new { expression });
+
+            return (result != 0);
         }
 
         public string[] GetAllExpressions()

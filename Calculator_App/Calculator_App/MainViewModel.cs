@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.Input;
+using ControlzEx.Standard;
 using EquationProcessing;
 using System;
 using System.Collections.Generic;
@@ -7,6 +8,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -46,8 +48,8 @@ class MainViewModel : INotifyPropertyChanged, IDataErrorInfo
     private readonly IMemory _memory;
 
     private bool OperationSelection = false;
-    private int OpenBracket = 0;
     private bool CalculationSelection = false;
+    private int OpenBracket = 0;
 
     public MainViewModel(IMemory memory)
     {
@@ -58,87 +60,130 @@ class MainViewModel : INotifyPropertyChanged, IDataErrorInfo
         // Добавление в память
         AddToMemoryCommand = new RelayCommand<string>(expression =>
         {
-            if(_memory.Add(expression))
-                OperationHistory.Add(expression);
+            if (!Valid)
+            {
+                OnPropertyChanged(nameof(Result));
+            }
+            else
+            {
+                if (_memory.Add(expression))
+                {
+                    OperationHistory.Add(expression);
+                    //string temp = "=" + Calculator.Calculation(_result);
+                    //_memory.Add(temp);
+                    //OperationHistory.Add(temp);
+                }
+            }
+
         });
 
         GetExpression = new RelayCommand<string>(expression =>
         {
-            CurrentValue = expression;
+            if (PastOperation == "(")
+                Result += expression;
+            else
+                Result = expression;
         });
 
         // Удаление из памяти
         DeleteToMemoryCommand = new RelayCommand<string>(expression =>
         {
-            _memory.Delete(expression);
-            OperationHistory.Remove(expression);
-            CurrentValue = "0";
+            if(_memory.Delete(expression))
+            {
+                OperationHistory.Remove(expression);
+                Result = "0";
+            }
         });
 
         // Очищаем все значения
         CleanCommand = new RelayCommand(() =>
         {
-            PastValue = PastOperation = CurrentValue = TempResult = Result = string.Empty;
-            OperationSelection = false;
-            CalculationSelection = false;
+            PastOperation = Result = string.Empty;
+            OperationSelection = CalculationSelection = false;
             OpenBracket = 0;
         });
 
-        // Инвертируем текущее значение
+        // Инвертируем последние число
         InversionCommand = new RelayCommand(() =>
         {
-            CurrentValue = CurrentValue.Length > 0 && CurrentValue[0] != '-' ? '-' + CurrentValue : CurrentValue.Substring(1);
+            Regex regex = new Regex(@"[-+]?\b\d+\b");
+            MatchCollection matches = regex.Matches(_result);
+
+            // Если найдено хотя бы одно число
+            if (matches.Count > 0)
+            {
+                // Получаем последнее число в строке
+                Match lastNumberMatch = matches[matches.Count - 1];
+                int number = int.Parse(lastNumberMatch.Value);
+
+                // Меняем знак числа и обновляем строку
+                int newNumber = -number;
+                string temp = string.Empty;
+                if(newNumber >= 0 && (PastOperation == "-" || PastOperation == "+" || PastOperation == "("))
+                    temp = "+" + newNumber;
+                else
+                    temp = newNumber.ToString();
+                Result = _result.Remove(lastNumberMatch.Index, lastNumberMatch.Length).Insert(lastNumberMatch.Index, temp);
+            }
         });
 
         // Light version
 
         InputCommand = new RelayCommand<string>(x =>
         {
-            if (OperationSelection)
-            {
+            if (PastOperation == ")")
+                return;
 
+            if (OperationSelection)  // Вводим значение после ввода операции
+            {
                 Result += PastOperation;
                 OperationSelection = false;
             }
-            else if (CalculationSelection)
+            else if (CalculationSelection)  // Вводим значение после вычисления выражения
             {
-                CurrentValue = string.Empty;
+                if(x != ",")
+                    Result = string.Empty;
                 CalculationSelection = false;
             }
+            else
+            {
+                PastOperation = string.Empty;
+            }
 
-            CurrentValue += x;
-            Result += CurrentValue;
+            Result += x;
         });
 
         OperationCommand = new RelayCommand<string>(x =>
         {
-            CurrentValue = string.Empty;
-            if (x == "()")
-            {
-                if (OperationSelection)
-                {
+            if (x == "(" && (OperationSelection || PastOperation == "(" || Result == "0"))
+            { 
+                if (PastOperation == "(")
+                    Result += "(";
+                else
                     Result += PastOperation + "(";
-                    OperationSelection = false;
-                    OpenBracket += 1;
-                }
-                else if (OpenBracket != 0)
-                {
-                    Result += ")";
-                    OperationSelection = false;
-                    OpenBracket -= 1;
-                }
+                OpenBracket += 1;
+                OperationSelection = false;
+                PastOperation = "(";
             }
-            else
+            else if (x == ")" && OpenBracket != 0)
+            {
+
+                Result += ")";
+                OperationSelection = false;
+                OpenBracket -= 1;
+
+                PastOperation = ")";
+            }
+            else if ("+-*/".Contains(x)) // Вводим операцию
             {
                 OperationSelection = true;
                 CalculationSelection = false;
+                PastOperation = x;
             }
-
-            PastOperation = x;
 
         });
 
-        СalculationsCommand = new RelayCommand(() =>
+        CalculationsCommand = new RelayCommand(() =>
         {
             if (!Valid)
             {
@@ -286,16 +331,21 @@ class MainViewModel : INotifyPropertyChanged, IDataErrorInfo
     {
         get
         {
-            int openingBrackets = _currentValue.Count(c => (c == '('));
-            int closingBrackets = _currentValue.Count(c => (c == ')'));
-            if(openingBrackets > closingBrackets)
+            int openingBrackets = _result.Count(c => (c == '('));
+            int closingBrackets = _result.Count(c => (c == ')'));
+            if (openingBrackets > closingBrackets)
             {
-                _errors[nameof(CurrentValue)] = "Не хватает закрывающих скобок";
+                _errors[nameof(Result)] = "Не хватает закрывающих скобок";
                 _valid = false;
             }
-            else if(openingBrackets < closingBrackets)
+            else if (openingBrackets < closingBrackets)
             {
-                _errors[nameof(CurrentValue)] = "Не хватает открывающих скобок";
+                _errors[nameof(Result)] = "Не хватает открывающих скобок";
+                _valid = false;
+            }
+            else if (!IsExpressionBetweenBrackets(_result) && openingBrackets != 0)
+            {
+                _errors[nameof(Result)] = "Между скобками не хватает выражения";
                 _valid = false;
             }
             else
@@ -310,27 +360,23 @@ class MainViewModel : INotifyPropertyChanged, IDataErrorInfo
         }
     }
 
-    private string? _tempResult = string.Empty;
-    public string? TempResult
+    static bool IsExpressionBetweenBrackets(string expression)
     {
-        get => _tempResult;
-        set
+        Regex regex = new Regex(@"\([^()]*\)");
+        MatchCollection matches = regex.Matches(expression);
+
+        foreach (Match match in matches)
         {
-            _tempResult = value;
-            OnPropertyChanged();
+            if (match.Length > 2)
+            {
+                return true;
+            }
         }
+
+        return false;
     }
 
-    private string? _result = string.Empty;
-    public string? Result
-    {
-        get => _result == string.Empty ? CurrentValue : _result;
-        set
-        {
-            _result = value;
-            OnPropertyChanged();
-        }
-    }
+
 
     private string? _pastOperation = string.Empty;
     public string? PastOperation
@@ -344,42 +390,28 @@ class MainViewModel : INotifyPropertyChanged, IDataErrorInfo
         }
     }
 
-    private string? _pastValue = string.Empty;
-    public string? PastValue
+    private string? _result = "0";
+    public string? Result
     {
-        get => _pastValue;
+        get => _result;
         set
         {
-            _pastValue = value;
-            OnPropertyChanged();
+            _result = Calculator.Handler(value);
 
-        }
-    } 
+            _result = (_result == "0" || _result.Contains(",") || _result.Contains(".")) ? _result : _result.TrimStart('0');
 
-    private string _currentValue = "0";
-    public string CurrentValue
-    {
-        get => _currentValue;
-        set
-        {
-            _currentValue = Calculator.Handler(value);
-
-            _currentValue = (_currentValue == "0" || _currentValue.Contains(",") || _currentValue.Contains(".")) ? _currentValue : _currentValue.TrimStart('0');
-
-            _errors[nameof(CurrentValue)] = null;
+            _errors[nameof(Result)] = null;
 
             OnPropertyChanged();
-
         }
     }
-
 
     public RelayCommand CleanCommand { get; }
     public RelayCommand InversionCommand { get; }
     public RelayCommand<string> InputCommand { get; }
     public RelayCommand<string> OperationCommand { get; }
-    public RelayCommand СalculationsCommand { get; }
-
+    public RelayCommand CalculationsCommand { get; }
+                        
 
     public virtual RelayCommand<string> AddToMemoryCommand { get; }
     public virtual RelayCommand<string> GetExpression { get; }

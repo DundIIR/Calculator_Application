@@ -79,8 +79,32 @@
             </Style.Triggers>
         </Style>
 
+        <Style x:Key="ButtonOpen" TargetType="{x:Type Button}" BasedOn="{StaticResource ButtonOperationStyle}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="40,4,4,40" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ButtonClose" TargetType="{x:Type Button}" BasedOn="{StaticResource ButtonOperationStyle}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="4,40,40,4" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="ButtonMemory" TargetType="{x:Type Button}" BasedOn="{StaticResource ButtonOperationStyle}">
-            <Setter Property="CommandParameter" Value="{Binding CurrentValue}" />
+            <Setter Property="CommandParameter" Value="{Binding Result}" />
             <Setter Property="Width" Value="100"/>
             <Setter Property="Background" Value="Orange"/>
             <Style.Triggers>
@@ -105,9 +129,9 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border Background="{TemplateBinding Background}"
-                    BorderBrush="{TemplateBinding BorderBrush}"
-                    BorderThickness="{TemplateBinding BorderThickness}"
-                    CornerRadius="5">
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="5">
                             <ContentPresenter HorizontalAlignment="Center"
                           VerticalAlignment="Center"/>
                         </Border>
@@ -186,8 +210,8 @@
             <!-- Поле для отображения ввода и результата -->
             <TextBox Grid.Row="2" Grid.Column="0"
                     Style="{StaticResource InputField}"
-                    Text="{Binding CurrentValue, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True, ValidatesOnDataErrors=True}" 
-                    FontSize="{Binding CurrentValue, Converter={StaticResource TextBoxSizeConverter}, ConverterParameter=Current}" 
+                    Text="{Binding Result, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True, ValidatesOnDataErrors=True}" 
+                    FontSize="{Binding Result, Converter={StaticResource TextBoxSizeConverter}, ConverterParameter=Current}" 
                     FontWeight="Light" 
                     VerticalContentAlignment="Bottom" HorizontalContentAlignment="Right" 
                     Background="#111"  
@@ -233,12 +257,19 @@
                 <Button Content="*" Grid.Row="1" Grid.Column="3" Style="{StaticResource ButtonOperationStyle}" />
                 <Button Content="-" Grid.Row="2" Grid.Column="3" Style="{StaticResource ButtonOperationStyle}" />
                 <Button Content="+" Grid.Row="3" Grid.Column="3" Style="{StaticResource ButtonOperationStyle}" />
-                <Button Command="{Binding СalculationsCommand}" Content="=" Grid.Row="4" Grid.Column="3" Style="{StaticResource CalculatorButtonStyle}" Background="Orange"/>
+                <Button Command="{Binding CalculationsCommand}" Content="=" Grid.Row="4" Grid.Column="3" Style="{StaticResource CalculatorButtonStyle}" Background="Orange"/>
 
                 <!-- Кнопки "Сброс", "Смена знака" и "Скобочки" -->
                 <Button Command="{Binding CleanCommand}" Content="AC" Grid.Row="0" Grid.Column="0" Style="{StaticResource CalculatorButtonStyle}" Background="#999" Foreground="#111"/>
                 <Button Command="{Binding InversionCommand}" Content="+-" Grid.Row="0" Grid.Column="1" Style="{StaticResource CalculatorButtonStyle}" Background="#999" Foreground="#111"/>
-                <Button Content="()" Grid.Row="0" Grid.Column="2" Style="{StaticResource ButtonOperationStyle}" Background="#999" Foreground="#111"/>
+                <Grid Grid.Row="0" Grid.Column="2" >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Content="(" Grid.Column="0" Padding="5 0 0 3" Margin="5 5 2 5" Style="{StaticResource ButtonOpen}" Background="#999" Foreground="#111"/>
+                    <Button Content=")" Grid.Column="1" Padding="0 0 5 3" Margin="2 5 5 5" Style="{StaticResource ButtonClose}" Background="#999" Foreground="#111"/>
+                </Grid>
             </Grid>
         </Grid>
     </Border>
