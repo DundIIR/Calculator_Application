@@ -54,8 +54,8 @@ namespace Calculator_App
         public FileMemory()
         {
             string spath = typeof(DBMemory).Assembly.Location.ToString();
-            int index = spath.IndexOf("Calculator_App") + "Calculator_App".Length;
-            filePath = spath.Substring(0, index) + "\\Calculator_App\\Resources\\HistoryOperations.txt";
+            int index = spath.IndexOf("Calculator_App\\") + "Calculator_App\\".Length;
+            filePath = spath.Substring(0, index) + "Calculator_App\\Resources\\HistoryOperations.txt";
         }
 
         public bool Delete(string expression)
@@ -103,8 +103,8 @@ namespace Calculator_App
         {
 
             string spath = typeof(DBMemory).Assembly.Location.ToString();
-            int index = spath.IndexOf("Calculator_App") + "Calculator_App".Length;
-            string connectionPath = "Data Source=" + spath.Substring(0, index) + "\\db_operation.db;";
+            int index = spath.IndexOf("Calculator_App\\") + "Calculator_App\\".Length;
+            string connectionPath = "Data Source=" + spath.Substring(0, index) + "db_operation.db;";
 
             connection = new System.Data.SQLite.SQLiteConnection(connectionPath);
             connection.Open();
